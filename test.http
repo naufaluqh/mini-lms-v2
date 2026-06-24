@@ -1,0 +1,125 @@
+@hostname = http://localhost:5000
+@adminUsername = admin_lms
+@adminPassword = adminPassword123
+@employeeUsername = naufal_sig
+@employeePassword = passwordSemenGresik2026
+
+# CATATAN: Untuk menjalankan request di bawah ini:
+# 1. Pastikan server berjalan: 'node server.js'
+# 2. Jika Anda menggunakan VS Code, pasang ekstensi "REST Client".
+#    Klik tombol "Send Request" di atas setiap method HTTP.
+# 3. Salin JWT Token dari response LOGIN lalu tempelkan di variabel di bawah ini:
+@token = SALIN_TOKEN_JWT_DI_SINI
+
+### =================================================================
+### A. AUTENTIKASI & REGISTRASI
+### =================================================================
+
+### 1. UJI COBA REGISTRASI KARYAWAN BARU (Default role: karyawan)
+POST {{hostname}}/api/auth/register
+Content-Type: application/json
+
+{
+  "username": "{{employeeUsername}}",
+  "password": "{{employeePassword}}"
+}
+
+###
+
+### 2. UJI COBA REGISTRASI ADMIN BARU (Role: admin)
+POST {{hostname}}/api/auth/register
+Content-Type: application/json
+
+{
+  "username": "{{adminUsername}}",
+  "password": "{{adminPassword}}",
+  "role": "admin"
+}
+
+###
+
+### 3. UJI COBA LOGIN KARYAWAN
+POST {{hostname}}/api/auth/login
+Content-Type: application/json
+
+{
+  "username": "{{employeeUsername}}",
+  "password": "{{employeePassword}}"
+}
+
+###
+
+### 4. UJI COBA LOGIN ADMIN
+# Salin token dari response ini dan masukkan ke variabel @token di baris 10
+POST {{hostname}}/api/auth/login
+Content-Type: application/json
+
+{
+  "username": "{{adminUsername}}",
+  "password": "{{adminPassword}}"
+}
+
+###
+
+
+### =================================================================
+### B. MANAJEMEN KELAS & MATERI (Memerlukan Token Admin)
+### =================================================================
+
+### 5. BUAT KELAS BARU (Admin / Manager Only)
+POST {{hostname}}/api/courses
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "title": "Pelatihan Keselamatan Kerja (K3) Semen Gresik",
+  "instructor": "Budi Hartono",
+  "materials": [
+    "Pengenalan Dasar K3 di Lapangan Pabrik",
+    "SOP Penggunaan APD (Alat Pelindung Diri)"
+  ]
+}
+
+###
+
+### 6. BACA SEMUA KELAS (Semua Role yang login)
+# Ambil ID kelas dari response ini untuk test tambah materi
+GET {{hostname}}/api/courses
+Authorization: Bearer {{token}}
+
+###
+
+### 7. TAMBAH MATERI MODUL KELAS (Admin Only)
+# Ganti ID kelas di URL dengan ID yang Anda dapatkan dari request #6
+@courseId = SALIN_ID_KELAS_DI_SINI
+
+POST {{hostname}}/api/courses/{{courseId}}/material
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "material": "Prosedur Evakuasi Keadaan Darurat Kebakaran"
+}
+
+###
+
+
+### =================================================================
+### C. LAPORAN & SERTIFIKASI (MOCK AUTOMATION)
+### =================================================================
+
+### 8. EKSPOR LAPORAN PROGRESS KARYAWAN KE EXCEL (Admin / Manager Only)
+GET {{hostname}}/api/reports/excel
+Authorization: Bearer {{token}}
+
+###
+
+### 9. PENERBITAN & PENGIRIMAN SERTIFIKAT PDF (Semua Role yang login)
+POST {{hostname}}/api/reports/certificate
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "username": "{{employeeUsername}}",
+  "courseTitle": "Pelatihan Keselamatan Kerja (K3) Semen Gresik"
+}
